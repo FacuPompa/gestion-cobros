@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: cobranzas-postgres
+    environment:
+      POSTGRES_DB: cobranzas
+      POSTGRES_USER: cobranzas_app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - "cobranzas_pgdata:/var/lib/postgresql"
+
+volumes:
+  cobranzas_pgdata:
