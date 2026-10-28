@@ -6,10 +6,7 @@ import com.facupompa.cobranzas.domain.service.CustomerService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -19,6 +16,13 @@ public class CustomerController {
 
     public CustomerController(CustomerService customerService) {
         this.customerService = customerService;
+    }
+
+    @GetMapping("/{customerId}")
+    ResponseEntity<CustomerResponse> findCustomerById(@PathVariable Long customerId) {
+        CustomerResponse customerResponse = customerService.findCustomerById(customerId);
+
+        return new ResponseEntity<>(customerResponse, HttpStatus.OK);
     }
 
     @PostMapping
