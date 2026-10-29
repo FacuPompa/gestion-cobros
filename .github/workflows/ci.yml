@@ -16,6 +16,21 @@ jobs:
     name: Compilar
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: cobranzas_ci
+          POSTGRES_USER: cobranzas_ci
+          POSTGRES_PASSWORD: ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cobranzas_ci -d cobranzas_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Descargar código
         uses: actions/checkout@v7
@@ -27,6 +42,10 @@ jobs:
           java-version: "27-ea"
           cache: gradle
 
-      - name: Compilar aplicación
-
-        run: ./gradlew compileJava --no-daemon
+      - name: Compilar y ejecutar tests
+        env:
+          SPRING_PROFILES_ACTIVE: dev
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/cobranzas_ci
+          SPRING_DATASOURCE_USERNAME: cobranzas_ci
+          POSTGRES_PASSWORD: ci_password
+        run: ./gradlew test --no-daemon
