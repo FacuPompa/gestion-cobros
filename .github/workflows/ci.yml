@@ -48,4 +48,4 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/cobranzas_ci
           SPRING_DATASOURCE_USERNAME: cobranzas_ci
           POSTGRES_PASSWORD: ci_password
-        run: ./gradlew test --no-daemon
+        run: ./gradlew verificarBloqueoCI --no-daemon
