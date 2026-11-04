@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class DebtService {
@@ -41,5 +43,27 @@ public class DebtService {
         DebtEntity savedDebt = debtRepository.save(debt);
 
         return new DebtResponse(savedDebt.getId(), savedDebt.getCustomer().getId(), savedDebt.getDescription(), savedDebt.getOriginalAmount(), savedDebt.getDueDate());
+    }
+
+    @Transactional(readOnly = true)
+    public List<DebtResponse> findDebtsByCustomerId (Long customerId) {
+        CustomerEntity customer = customerRepository.findById(customerId).orElseThrow(() ->{
+            return new CustomerNotFoundException(customerId);
+        } );
+
+        List<DebtEntity> debts = debtRepository.findAllByCustomerId(customerId);
+
+        List<DebtResponse> responses = new ArrayList<>();
+        for (DebtEntity debt : debts) {
+            DebtResponse response = new DebtResponse(
+                    debt.getId(),
+                    debt.getCustomer().getId(),
+                    debt.getDescription(),
+                    debt.getOriginalAmount(),
+                    debt.getDueDate()
+            );
+            responses.add(response);
+        }
+        return responses;
     }
 }
