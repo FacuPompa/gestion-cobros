@@ -15,10 +15,10 @@ public class DevSecurityConfig {
     public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorization -> authorization
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                .requestMatchers("/api/customers", "/api/customers/**", "/api/debts", "/api/debts/**").permitAll()
+                .requestMatchers("/api/customers", "/api/customers/**", "/api/debts", "/api/debts/**", "/api/payments", "/api/payments/**").permitAll()
                 .anyRequest().denyAll()
         )
-                .csrf(csrfConfig -> csrfConfig.ignoringRequestMatchers("/api/customers", "/api/customers/**", "/api/debts", "/api/debts/**"));
+                .csrf(csrfConfig -> csrfConfig.ignoringRequestMatchers("/api/customers", "/api/customers/**", "/api/debts", "/api/debts/**", "/api/payments", "/api/payments/**"));
                 return http.build();
     }
 }
