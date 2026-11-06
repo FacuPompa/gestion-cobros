@@ -1,6 +1,7 @@
 package com.facupompa.cobranzas.web.controller;
 
 import com.facupompa.cobranzas.domain.dto.CreateCustomerRequest;
+import com.facupompa.cobranzas.domain.dto.CustomerBalanceResponse;
 import com.facupompa.cobranzas.domain.dto.CustomerResponse;
 import com.facupompa.cobranzas.domain.service.CustomerService;
 import jakarta.validation.Valid;
@@ -29,5 +30,12 @@ public class CustomerController {
     ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CreateCustomerRequest createCustomerRequest) {
         CustomerResponse customer = customerService.createCustomer(createCustomerRequest);
         return new ResponseEntity<>(customer, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{customerId}/balance")
+    ResponseEntity<CustomerBalanceResponse> findCustomerBalanceById (@PathVariable Long customerId){
+        CustomerBalanceResponse balance = customerService.findCustomerBalanceById(customerId);
+
+        return new ResponseEntity<>(balance, HttpStatus.OK);
     }
 }

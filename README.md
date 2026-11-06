@@ -1,7 +1,7 @@
 # Cobranzas API
 
 API REST para registrar clientes, deudas y cobros en pesos argentinos, y consultar
-el saldo pendiente de una deuda. Proyecto backend en desarrollo.
+el saldo pendiente de una deuda o el total de un cliente. Proyecto backend en desarrollo.
 
 La aplicación registra pagos que ya ocurrieron; no mueve dinero ni integra
 pasarelas de pago o facturación fiscal.
@@ -16,6 +16,7 @@ pasarelas de pago o facturación fiscal.
 - Medios de pago: efectivo (CASH), transferencia (BANK_TRANSFER) y tarjeta (CARD).
 - Rechazo de cobros superiores al saldo pendiente, incluyendo deudas saldadas.
 - Consulta del importe original, total cobrado y saldo pendiente de una deuda.
+- Consulta de totales de todas las deudas de un cliente; sin deudas devuelve ceros.
 - Validación de importes positivos con hasta dos decimales.
 
 El saldo se calcula desde la deuda y sus cobros; no se guarda como un saldo
@@ -58,6 +59,7 @@ Hibernate valida el esquema mediante ddl-auto=validate.
 | --- | --- | --- |
 | POST | /api/customers | Registrar cliente |
 | GET | /api/customers/{customerId} | Consultar cliente |
+| GET | /api/customers/{customerId}/balance | Consultar saldo total del cliente |
 | POST | /api/debts | Registrar deuda |
 | GET | /api/debts/customer/{customerId} | Consultar deudas de un cliente |
 | GET | /api/debts/{debtId}/balance | Consultar saldo de deuda |
@@ -83,7 +85,6 @@ llama Compilar. Todavía no hay despliegue automático (CD).
 ## Próximos pasos y límites actuales
 
 - Ampliar las pruebas automatizadas de las reglas de negocio.
-- Consultar el saldo total de un cliente.
 - Incorporar anulaciones e historial conservando los cobros originales.
 - Incorporar usuarios, permisos y autoría de las operaciones.
 - Trabajar idempotencia y conflictos entre operaciones simultáneas.
