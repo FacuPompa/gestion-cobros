@@ -1,15 +1,20 @@
 package com.facupompa.cobranzas.domain.service;
 
 import com.facupompa.cobranzas.domain.dto.CreateDebtRequest;
+import com.facupompa.cobranzas.domain.dto.DebtBalanceResponse;
 import com.facupompa.cobranzas.domain.dto.DebtResponse;
 import com.facupompa.cobranzas.domain.exception.CustomerNotFoundException;
+import com.facupompa.cobranzas.domain.exception.DebtNotFoundException;
 import com.facupompa.cobranzas.persistence.entity.CustomerEntity;
 import com.facupompa.cobranzas.persistence.entity.DebtEntity;
+import com.facupompa.cobranzas.persistence.entity.PaymentEntity;
 import com.facupompa.cobranzas.persistence.repository.CustomerRepository;
 import com.facupompa.cobranzas.persistence.repository.DebtRepository;
+import com.facupompa.cobranzas.persistence.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -19,10 +24,12 @@ import java.util.List;
 public class DebtService {
     private final CustomerRepository customerRepository;
     private final DebtRepository debtRepository;
+    private final PaymentRepository paymentRepository;
 
-    public DebtService(CustomerRepository customerRepository, DebtRepository debtRepository) {
+    public DebtService(CustomerRepository customerRepository, DebtRepository debtRepository, PaymentRepository paymentRepository) {
         this.customerRepository = customerRepository;
         this.debtRepository = debtRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     @Transactional
@@ -65,5 +72,29 @@ public class DebtService {
             responses.add(response);
         }
         return responses;
+    }
+
+    @Transactional(readOnly = true)
+    public DebtBalanceResponse findDebtBalanceById(Long debtId) {
+        DebtEntity debt = debtRepository.findById(debtId).orElseThrow(() -> {
+            return new DebtNotFoundException(debtId);
+        });
+
+        List<PaymentEntity> payments = paymentRepository.findAllByDebtId(debtId);
+
+        BigDecimal totalPaid = BigDecimal.ZERO;
+
+        for(PaymentEntity payment : payments) {
+            totalPaid = totalPaid.add(payment.getAmount());
+        }
+
+        BigDecimal remainingBalance = debt.getOriginalAmount().subtract(totalPaid);
+
+        return new DebtBalanceResponse(
+                debt.getId(),
+                debt.getOriginalAmount(),
+                totalPaid,
+                remainingBalance
+        );
     }
 }
