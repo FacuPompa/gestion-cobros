@@ -1,9 +1,12 @@
 package com.facupompa.cobranzas.domain.service;
 
+import com.facupompa.cobranzas.domain.dto.CancelPaymentRequest;
+import com.facupompa.cobranzas.domain.dto.CancelPaymentResponse;
 import com.facupompa.cobranzas.domain.dto.CreatePaymentRequest;
 import com.facupompa.cobranzas.domain.dto.PaymentResponse;
 import com.facupompa.cobranzas.domain.exception.DebtNotFoundException;
 import com.facupompa.cobranzas.domain.exception.PaymentExceedsBalanceException;
+import com.facupompa.cobranzas.domain.exception.PaymentNotFoundException;
 import com.facupompa.cobranzas.persistence.entity.DebtEntity;
 import com.facupompa.cobranzas.persistence.entity.PaymentEntity;
 import com.facupompa.cobranzas.persistence.repository.DebtRepository;
@@ -36,7 +39,9 @@ public class PaymentService {
         BigDecimal totalPaid = BigDecimal.ZERO;
 
         for (PaymentEntity payment : payments) {
-            totalPaid = totalPaid.add(payment.getAmount());
+            if(!payment.isCancelled()) {
+                totalPaid = totalPaid.add(payment.getAmount());
+            }
         }
 
         BigDecimal remainingBalance = debt.getOriginalAmount().subtract(totalPaid);
@@ -51,5 +56,22 @@ public class PaymentService {
         PaymentEntity savedPayment = paymentRepository.save(payment);
 
         return new PaymentResponse(savedPayment.getId(), savedPayment.getDebt().getId(), savedPayment.getAmount(), savedPayment.getPaymentMethod(), savedPayment.getRegisteredAt());
+    }
+
+    @Transactional
+    public CancelPaymentResponse cancelPayment(Long paymentId, CancelPaymentRequest request) {
+        PaymentEntity payment = paymentRepository.findById(paymentId).orElseThrow(() -> {
+            return new PaymentNotFoundException(paymentId);
+        });
+
+        payment.cancel(request.reason(), Instant.now());
+
+        return new CancelPaymentResponse(
+                payment.getId(),
+                payment.getDebt().getId(),
+                payment.getAmount(),
+                payment.getCancelledAt(),
+                payment.getCancellationReason()
+        );
     }
 }

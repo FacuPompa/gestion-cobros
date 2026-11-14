@@ -1,15 +1,14 @@
 package com.facupompa.cobranzas.web.controller;
 
+import com.facupompa.cobranzas.domain.dto.CancelPaymentRequest;
+import com.facupompa.cobranzas.domain.dto.CancelPaymentResponse;
 import com.facupompa.cobranzas.domain.dto.CreatePaymentRequest;
 import com.facupompa.cobranzas.domain.dto.PaymentResponse;
 import com.facupompa.cobranzas.domain.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -26,5 +25,12 @@ public class PaymentController{
         PaymentResponse paymentResponse = paymentService.registerPayment(request);
 
         return new ResponseEntity<>(paymentResponse, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/{paymentId}/cancel")
+    ResponseEntity<CancelPaymentResponse> cancelPayment (@PathVariable Long paymentId, @Valid @RequestBody CancelPaymentRequest request) {
+        CancelPaymentResponse cancelPaymentResponse = paymentService.cancelPayment(paymentId, request);
+
+        return new ResponseEntity<>(cancelPaymentResponse, HttpStatus.OK);
     }
 }

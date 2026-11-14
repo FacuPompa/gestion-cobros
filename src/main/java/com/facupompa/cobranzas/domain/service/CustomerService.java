@@ -65,7 +65,9 @@ public class CustomerService {
             List<PaymentEntity> payments = paymentRepository.findAllByDebtId(debt.getId());
 
             for (PaymentEntity payment : payments) {
-                totalPaid = payment.getAmount().add(totalPaid);
+                if(!payment.isCancelled()) {
+                    totalPaid = payment.getAmount().add(totalPaid);
+                }
             }
         }
 
