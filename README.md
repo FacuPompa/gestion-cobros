@@ -17,9 +17,11 @@ pasarelas de pago o facturación fiscal.
 - Rechazo de cobros superiores al saldo pendiente, incluyendo deudas saldadas.
 - Consulta del importe original, total cobrado y saldo pendiente de una deuda.
 - Consulta de totales de todas las deudas de un cliente; sin deudas devuelve ceros.
+- Anulación de cobros con motivo y fecha, conservando el importe y el registro original.
+- Rechazo de una segunda anulación del mismo cobro.
 - Validación de importes positivos con hasta dos decimales.
 
-El saldo se calcula desde la deuda y sus cobros; no se guarda como un saldo
+El saldo se calcula desde la deuda y sus cobros vigentes; no se guarda como un saldo
 mutable independiente.
 
 ## Tecnologías
@@ -64,10 +66,11 @@ Hibernate valida el esquema mediante ddl-auto=validate.
 | GET | /api/debts/customer/{customerId} | Consultar deudas de un cliente |
 | GET | /api/debts/{debtId}/balance | Consultar saldo de deuda |
 | POST | /api/payments | Registrar cobro |
+| POST | /api/payments/{paymentId}/cancel | Anular cobro con motivo |
 
 Las altas responden 201 y las consultas exitosas 200. Las entradas inválidas
-responden 400, los clientes o deudas inexistentes 404, y los cobros superiores
-al saldo 409. Un cliente existente sin deudas devuelve una lista vacía.
+responden 400, los clientes, deudas o cobros inexistentes 404, y los cobros
+superiores al saldo o una segunda anulación del mismo cobro 409. Un cliente existente sin deudas devuelve una lista vacía.
 
 ## Verificación y CI
 
@@ -75,7 +78,7 @@ Con PostgreSQL local iniciado y las variables del perfil dev disponibles,
 ejecutar `./gradlew test --rerun-tasks`.
 
 La prueba automatizada actual comprueba la carga del contexto de Spring.
-Los recorridos de registro, consulta, saldo y rechazos se comprobaron manualmente
+Los recorridos de registro, consulta, saldo, anulación y rechazos se comprobaron manualmente
 con Postman y DataGrip; todavía no hay tests automatizados específicos de negocio.
 
 GitHub Actions compila y ejecuta las pruebas en PRs hacia main y en pushes a
@@ -85,14 +88,14 @@ llama Compilar. Todavía no hay despliegue automático (CD).
 ## Próximos pasos y límites actuales
 
 - Ampliar las pruebas automatizadas de las reglas de negocio.
-- Incorporar anulaciones e historial conservando los cobros originales.
+- Incorporar una consulta del historial de cobros y anulaciones.
 - Incorporar usuarios, permisos y autoría de las operaciones.
 - Trabajar idempotencia y conflictos entre operaciones simultáneas.
 
 El perfil dev permite acceder a las rutas implementadas sin autenticación para
-pruebas locales. La implementación actual no incorpora anulaciones ni protección
-frente a cobros concurrentes o reenvíos duplicados. Por ahora se suman todos los
-cobros registrados. No se contemplan saldos a favor ni reparto entre deudas.
+pruebas locales. La implementación actual no incorpora protección frente a
+cobros concurrentes o reenvíos duplicados. Los cobros anulados se excluyen del
+cálculo de saldos y del saldo disponible al registrar nuevos cobros. No se contemplan saldos a favor ni reparto entre deudas.
 
 Este README se actualizará con cada funcionalidad completada y verificada,
 distinguiendo lo implementado de lo pendiente.

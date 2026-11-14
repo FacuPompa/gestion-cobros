@@ -1,8 +1,6 @@
 package com.facupompa.cobranzas.web.exception;
 
-import com.facupompa.cobranzas.domain.exception.CustomerNotFoundException;
-import com.facupompa.cobranzas.domain.exception.DebtNotFoundException;
-import com.facupompa.cobranzas.domain.exception.PaymentExceedsBalanceException;
+import com.facupompa.cobranzas.domain.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -30,5 +28,19 @@ public class RestExceptionHandler {
         ApiError error = new ApiError("payment-exceeds-balance", exception.getMessage());
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error); // codigo 409
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    ResponseEntity<ApiError> handlePaymentNotFound(PaymentNotFoundException exception) {
+        ApiError error = new ApiError("payment-not-found", exception.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(PaymentAlreadyCancelledException.class)
+    ResponseEntity<ApiError> handlePaymentAlreadyCancelled(PaymentAlreadyCancelledException exception) {
+        ApiError error = new ApiError("payment-already-cancelled", exception.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 }

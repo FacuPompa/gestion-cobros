@@ -85,7 +85,9 @@ public class DebtService {
         BigDecimal totalPaid = BigDecimal.ZERO;
 
         for(PaymentEntity payment : payments) {
-            totalPaid = totalPaid.add(payment.getAmount());
+            if(!payment.isCancelled()) {
+                totalPaid = totalPaid.add(payment.getAmount());
+            }
         }
 
         BigDecimal remainingBalance = debt.getOriginalAmount().subtract(totalPaid);

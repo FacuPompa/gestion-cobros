@@ -1,5 +1,6 @@
 package com.facupompa.cobranzas.persistence.entity;
 
+import com.facupompa.cobranzas.domain.exception.PaymentAlreadyCancelledException;
 import com.facupompa.cobranzas.domain.model.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,10 +33,29 @@ public class PaymentEntity {
     @Column(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethod;
 
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
+
+    @Column(name = "cancellation_reason", length = 255)
+    private String cancellationReason;
+
     public PaymentEntity(DebtEntity debt, BigDecimal amount, Instant registeredAt, PaymentMethod paymentMethod) {
         this.debt = debt;
         this.amount = amount;
         this.registeredAt = registeredAt;
         this.paymentMethod = paymentMethod;
+    }
+
+    public boolean isCancelled() {
+        return cancelledAt != null;
+    }
+
+    public void cancel(String reason, Instant cancelledAt){
+        if (isCancelled()) {
+            throw new PaymentAlreadyCancelledException(id);
+        }
+
+        this.cancellationReason = reason;
+        this.cancelledAt = cancelledAt;
     }
 }
