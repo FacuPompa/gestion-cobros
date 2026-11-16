@@ -1,9 +1,6 @@
 package com.facupompa.cobranzas.domain.service;
 
-import com.facupompa.cobranzas.domain.dto.CancelPaymentRequest;
-import com.facupompa.cobranzas.domain.dto.CancelPaymentResponse;
-import com.facupompa.cobranzas.domain.dto.CreatePaymentRequest;
-import com.facupompa.cobranzas.domain.dto.PaymentResponse;
+import com.facupompa.cobranzas.domain.dto.*;
 import com.facupompa.cobranzas.domain.exception.DebtNotFoundException;
 import com.facupompa.cobranzas.domain.exception.PaymentExceedsBalanceException;
 import com.facupompa.cobranzas.domain.exception.PaymentNotFoundException;
@@ -16,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -73,5 +71,30 @@ public class PaymentService {
                 payment.getCancelledAt(),
                 payment.getCancellationReason()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentHistoryResponse> findPaymentHistoryByDebtId(Long debtId){
+        DebtEntity debt = debtRepository.findById(debtId).orElseThrow(() -> {
+            return new DebtNotFoundException(debtId);
+        });
+
+        List<PaymentEntity> payments = paymentRepository.findAllByDebtIdOrderByRegisteredAtAscIdAsc(debt.getId());
+
+        List<PaymentHistoryResponse> responses = new ArrayList<>();
+
+        for (PaymentEntity payment : payments) {
+            PaymentHistoryResponse response = new PaymentHistoryResponse(
+                    payment.getId(),
+                    payment.getDebt().getId(),
+                    payment.getAmount(),
+                    payment.getPaymentMethod(),
+                    payment.getRegisteredAt(),
+                    payment.getCancelledAt(),
+                    payment.getCancellationReason()
+            );
+            responses.add(response);
+        }
+        return responses;
     }
 }
