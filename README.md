@@ -19,6 +19,8 @@ pasarelas de pago o facturación fiscal.
 - Consulta de totales de todas las deudas de un cliente; sin deudas devuelve ceros.
 - Anulación de cobros con motivo y fecha, conservando el importe y el registro original.
 - Rechazo de una segunda anulación del mismo cobro.
+- Historial por deuda con cobros vigentes y anulados, ordenado por fecha de
+  registro e identificador; incluye fecha y motivo de anulación.
 - Validación de importes positivos con hasta dos decimales.
 
 El saldo se calcula desde la deuda y sus cobros vigentes; no se guarda como un saldo
@@ -67,6 +69,7 @@ Hibernate valida el esquema mediante ddl-auto=validate.
 | GET | /api/debts/{debtId}/balance | Consultar saldo de deuda |
 | POST | /api/payments | Registrar cobro |
 | POST | /api/payments/{paymentId}/cancel | Anular cobro con motivo |
+| GET | /api/payments/debt/{debtId}/history | Consultar historial de cobros de una deuda |
 
 Las altas responden 201 y las consultas exitosas 200. Las entradas inválidas
 responden 400, los clientes, deudas o cobros inexistentes 404, y los cobros
@@ -88,7 +91,6 @@ llama Compilar. Todavía no hay despliegue automático (CD).
 ## Próximos pasos y límites actuales
 
 - Ampliar las pruebas automatizadas de las reglas de negocio.
-- Incorporar una consulta del historial de cobros y anulaciones.
 - Incorporar usuarios, permisos y autoría de las operaciones.
 - Trabajar idempotencia y conflictos entre operaciones simultáneas.
 
