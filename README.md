@@ -80,9 +80,22 @@ superiores al saldo o una segunda anulación del mismo cobro 409. Un cliente exi
 Con PostgreSQL local iniciado y las variables del perfil dev disponibles,
 ejecutar `./gradlew test --rerun-tasks`.
 
-La prueba automatizada actual comprueba la carga del contexto de Spring.
-Los recorridos de registro, consulta, saldo, anulación y rechazos se comprobaron manualmente
-con Postman y DataGrip; todavía no hay tests automatizados específicos de negocio.
+La batería actual contiene nueve pruebas:
+
+- Una prueba de carga del contexto de Spring.
+- Tres pruebas unitarias de PaymentEntity: cobro vigente, anulación que conserva
+  los datos originales y rechazo de una segunda anulación sin sobrescribirla.
+- Cinco pruebas de integración con PostgreSQL: persistencia de la anulación,
+  exclusión de anulados de saldos de deuda y cliente, registro de un nuevo cobro
+  usando el saldo recuperado, historial con desempate por ID y cobro inexistente.
+
+Las pruebas de integración crean sus propios datos y revierten sus transacciones
+al terminar. No comprueban concurrencia ni representan cobertura completa de la API.
+Los contratos HTTP y las validaciones de entrada también se comprobaron manualmente
+con Postman y DataGrip.
+
+Para ejecutar únicamente las pruebas unitarias de la entidad, sin Spring ni base:
+`./gradlew test --tests '*PaymentEntityTest' --rerun-tasks`.
 
 GitHub Actions compila y ejecuta las pruebas en PRs hacia main y en pushes a
 main, utilizando PostgreSQL efímero independiente de la base local. El job se
