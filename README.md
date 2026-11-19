@@ -21,6 +21,8 @@ pasarelas de pago o facturación fiscal.
 - Rechazo de una segunda anulación del mismo cobro.
 - Historial por deuda con cobros vigentes y anulados, ordenado por fecha de
   registro e identificador; incluye fecha y motivo de anulación.
+- Usuarios persistidos con hashes BCrypt y roles OPERATOR y ADMIN.
+- Autenticación HTTP Basic en el perfil dev; anulación reservada a ADMIN.
 - Validación de importes positivos con hasta dos decimales.
 
 El saldo se calcula desde la deuda y sus cobros vigentes; no se guarda como un saldo
@@ -75,6 +77,20 @@ Las altas responden 201 y las consultas exitosas 200. Las entradas inválidas
 responden 400, los clientes, deudas o cobros inexistentes 404, y los cobros
 superiores al saldo o una segunda anulación del mismo cobro 409. Un cliente existente sin deudas devuelve una lista vacía.
 
+## Acceso local
+
+En el perfil dev, las rutas de la API requieren HTTP Basic. En Postman, elegir
+Authorization → Basic Auth y usar una cuenta existente en app_users. Las
+contraseñas se guardan como hashes BCrypt; no existe registro público ni carga
+automática de usuarios. Las cuentas locales de prueba se cargaron por separado:
+V5 solo crea la tabla, sin insertar credenciales.
+
+OPERATOR puede consultar y registrar datos; ADMIN puede además anular cobros.
+Sin credenciales o con contraseña incorrecta se devuelve401; un operador que
+intenta anular recibe403. HTTP Basic es el mecanismo actual de práctica local;
+JWT y autoría de las operaciones están pendientes. Fuera del entorno local,
+Basic requiere HTTPS para proteger las credenciales durante el transporte.
+
 ## Verificación y CI
 
 Con PostgreSQL local iniciado y las variables del perfil dev disponibles,
@@ -104,11 +120,11 @@ llama Compilar. Todavía no hay despliegue automático (CD).
 ## Próximos pasos y límites actuales
 
 - Ampliar las pruebas automatizadas de las reglas de negocio.
-- Incorporar usuarios, permisos y autoría de las operaciones.
+- Incorporar login con JWT y autoría de las operaciones.
 - Trabajar idempotencia y conflictos entre operaciones simultáneas.
 
-El perfil dev permite acceder a las rutas implementadas sin autenticación para
-pruebas locales. La implementación actual no incorpora protección frente a
+El control de acceso actual está configurado para el perfil dev.
+La implementación actual no incorpora protección frente a
 cobros concurrentes o reenvíos duplicados. Los cobros anulados se excluyen del
 cálculo de saldos y del saldo disponible al registrar nuevos cobros. No se contemplan saldos a favor ni reparto entre deudas.
 

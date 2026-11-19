@@ -1,0 +1,6 @@
+package com.facupompa.cobranzas.domain.model;
+
+public enum UserRole {
+    OPERATOR,
+    ADMIN
+}
