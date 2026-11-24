@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.core.AuthenticationException;
 
 @RestControllerAdvice
 public class RestExceptionHandler {
@@ -42,5 +43,12 @@ public class RestExceptionHandler {
         ApiError error = new ApiError("payment-already-cancelled", exception.getMessage());
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    ResponseEntity<ApiError> handleAuthentication(AuthenticationException exception) {
+        ApiError error = new ApiError("invalid-credentials", "Usuario o contrasenia incorrectos");
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 }

@@ -48,4 +48,5 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/cobranzas_ci
           SPRING_DATASOURCE_USERNAME: cobranzas_ci
           POSTGRES_PASSWORD: ci_password
+          JWT_SECRET: "cobranzas-ci-only-signing-key-32bytes-minimum"
         run: ./gradlew test --no-daemon
