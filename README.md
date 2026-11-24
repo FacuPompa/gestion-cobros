@@ -22,7 +22,8 @@ pasarelas de pago o facturación fiscal.
 - Historial por deuda con cobros vigentes y anulados, ordenado por fecha de
   registro e identificador; incluye fecha y motivo de anulación.
 - Usuarios persistidos con hashes BCrypt y roles OPERATOR y ADMIN.
-- Autenticación HTTP Basic en el perfil dev; anulación reservada a ADMIN.
+- Login con JWT de 15 minutos y autenticación Bearer en el perfil dev;
+  anulación reservada a ADMIN.
 - Validación de importes positivos con hasta dos decimales.
 
 El saldo se calcula desde la deuda y sus cobros vigentes; no se guarda como un saldo
@@ -63,6 +64,7 @@ Hibernate valida el esquema mediante ddl-auto=validate.
 
 | Método | Ruta | Operación |
 | --- | --- | --- |
+| POST | /api/auth/login | Autenticar y obtener JWT en header Authorization |
 | POST | /api/customers | Registrar cliente |
 | GET | /api/customers/{customerId} | Consultar cliente |
 | GET | /api/customers/{customerId}/balance | Consultar saldo total del cliente |
@@ -79,17 +81,28 @@ superiores al saldo o una segunda anulación del mismo cobro 409. Un cliente exi
 
 ## Acceso local
 
-En el perfil dev, las rutas de la API requieren HTTP Basic. En Postman, elegir
-Authorization → Basic Auth y usar una cuenta existente en app_users. Las
-contraseñas se guardan como hashes BCrypt; no existe registro público ni carga
-automática de usuarios. Las cuentas locales de prueba se cargaron por separado:
-V5 solo crea la tabla, sin insertar credenciales.
+Configurar JWT_SECRET con una clave aleatoria local (por ejemplo, generada con
+`openssl rand -base64 32`) en el entorno que ejecuta la aplicación y los tests,
+además de las variables de PostgreSQL y SPRING_PROFILES_ACTIVE=dev. La propiedad
+security.jwt.secret referencia esa variable; no guardar la clave en Git.
+
+Enviar POST /api/auth/login sin autenticación, con username y password en el
+body JSON. Con credenciales válidas responde 200, sin body, y un header
+Authorization con el valor Bearer seguido del JWT. En Postman, usar después
+Authorization → Bearer Token en las rutas protegidas y pegar solo el token.
+
+Los tokens duran 15 minutos y se verifican firma HMAC256, emisor cobranzas-api,
+expiración y presencia de sujeto. Cada petición carga los roles actuales desde
+PostgreSQL. El flujo es stateless; Basic Auth está deshabilitado.
+
+Las cuentas deben existir en app_users. V5 solo crea la tabla, sin insertar
+credenciales. Las contraseñas se guardan como hashes BCrypt; no existe registro
+público ni carga automática de usuarios.
 
 OPERATOR puede consultar y registrar datos; ADMIN puede además anular cobros.
-Sin credenciales o con contraseña incorrecta se devuelve401; un operador que
-intenta anular recibe403. HTTP Basic es el mecanismo actual de práctica local;
-JWT y autoría de las operaciones están pendientes. Fuera del entorno local,
-Basic requiere HTTPS para proteger las credenciales durante el transporte.
+Credenciales incorrectas en login o peticiones protegidas sin JWT válido reciben
+401; un operador que intenta anular recibe 403. Fuera del entorno local se requiere
+HTTPS. La autoría de las operaciones y la renovación de tokens no están implementadas.
 
 ## Verificación y CI
 
@@ -115,12 +128,13 @@ Para ejecutar únicamente las pruebas unitarias de la entidad, sin Spring ni bas
 
 GitHub Actions compila y ejecuta las pruebas en PRs hacia main y en pushes a
 main, utilizando PostgreSQL efímero independiente de la base local. El job se
-llama Compilar. Todavía no hay despliegue automático (CD).
+llama Compilar. CI utiliza una clave JWT sintética exclusiva de pruebas,
+independiente de la clave local. Todavía no hay despliegue automático (CD).
 
 ## Próximos pasos y límites actuales
 
 - Ampliar las pruebas automatizadas de las reglas de negocio.
-- Incorporar login con JWT y autoría de las operaciones.
+- Incorporar autoría de las operaciones.
 - Trabajar idempotencia y conflictos entre operaciones simultáneas.
 
 El control de acceso actual está configurado para el perfil dev.
