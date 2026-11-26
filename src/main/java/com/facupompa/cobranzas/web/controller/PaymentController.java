@@ -2,6 +2,7 @@ package com.facupompa.cobranzas.web.controller;
 
 import com.facupompa.cobranzas.domain.dto.*;
 import com.facupompa.cobranzas.domain.service.PaymentService;
+import com.facupompa.cobranzas.web.security.CurrentUserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,21 +15,23 @@ import java.util.List;
 public class PaymentController{
 
     private final PaymentService paymentService;
+    private final CurrentUserService currentUserService;
 
-    public PaymentController(PaymentService paymentService) {
+    public PaymentController(PaymentService paymentService, CurrentUserService currentUserService) {
         this.paymentService = paymentService;
+        this.currentUserService = currentUserService;
     }
 
     @PostMapping
     ResponseEntity<PaymentResponse> registerPayment (@Valid @RequestBody CreatePaymentRequest request) {
-        PaymentResponse paymentResponse = paymentService.registerPayment(request);
+        PaymentResponse paymentResponse = paymentService.registerPayment(request, currentUserService.getUsername());
 
         return new ResponseEntity<>(paymentResponse, HttpStatus.CREATED);
     }
 
     @PostMapping("/{paymentId}/cancel")
     ResponseEntity<CancelPaymentResponse> cancelPayment (@PathVariable Long paymentId, @Valid @RequestBody CancelPaymentRequest request) {
-        CancelPaymentResponse cancelPaymentResponse = paymentService.cancelPayment(paymentId, request);
+        CancelPaymentResponse cancelPaymentResponse = paymentService.cancelPayment(paymentId, request, currentUserService.getUsername());
 
         return new ResponseEntity<>(cancelPaymentResponse, HttpStatus.OK);
     }

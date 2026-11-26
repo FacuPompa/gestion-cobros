@@ -12,6 +12,8 @@ public record PaymentHistoryResponse(
         PaymentMethod paymentMethod,
         Instant registeredAt,
         Instant cancelledAt,
-        String cancellationReason
+        String cancellationReason,
+        String registeredBy,
+        String cancelledBy
 ) {
 }

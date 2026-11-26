@@ -8,7 +8,8 @@ public record CancelPaymentResponse(
         Long debtId,
         BigDecimal amount,
         Instant cancelledAt,
-        String cancellationReason
+        String cancellationReason,
+        String cancelledBy
 
 ) {
 }

@@ -28,7 +28,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentResponse registerPayment(CreatePaymentRequest request) {
+    public PaymentResponse registerPayment(CreatePaymentRequest request, String registeredBy) {
         DebtEntity debt = debtRepository.findById(request.debtId()).orElseThrow(() -> {
             return new DebtNotFoundException(request.debtId());
         });
@@ -48,28 +48,29 @@ public class PaymentService {
             throw new PaymentExceedsBalanceException();
         }
         PaymentEntity payment = new PaymentEntity(
-                debt, request.amount(), Instant.now(), request.paymentMethod()
+                debt, request.amount(), Instant.now(), request.paymentMethod(), registeredBy
         );
 
         PaymentEntity savedPayment = paymentRepository.save(payment);
 
-        return new PaymentResponse(savedPayment.getId(), savedPayment.getDebt().getId(), savedPayment.getAmount(), savedPayment.getPaymentMethod(), savedPayment.getRegisteredAt());
+        return new PaymentResponse(savedPayment.getId(), savedPayment.getDebt().getId(), savedPayment.getAmount(), savedPayment.getPaymentMethod(), savedPayment.getRegisteredAt(), savedPayment.getRegisteredBy());
     }
 
     @Transactional
-    public CancelPaymentResponse cancelPayment(Long paymentId, CancelPaymentRequest request) {
+    public CancelPaymentResponse cancelPayment(Long paymentId, CancelPaymentRequest request, String cancelledBy) {
         PaymentEntity payment = paymentRepository.findById(paymentId).orElseThrow(() -> {
             return new PaymentNotFoundException(paymentId);
         });
 
-        payment.cancel(request.reason(), Instant.now());
+        payment.cancel(request.reason(), Instant.now(), cancelledBy);
 
         return new CancelPaymentResponse(
                 payment.getId(),
                 payment.getDebt().getId(),
                 payment.getAmount(),
                 payment.getCancelledAt(),
-                payment.getCancellationReason()
+                payment.getCancellationReason(),
+                payment.getCancelledBy()
         );
     }
 
@@ -91,7 +92,9 @@ public class PaymentService {
                     payment.getPaymentMethod(),
                     payment.getRegisteredAt(),
                     payment.getCancelledAt(),
-                    payment.getCancellationReason()
+                    payment.getCancellationReason(),
+                    payment.getRegisteredBy(),
+                    payment.getCancelledBy()
             );
             responses.add(response);
         }
