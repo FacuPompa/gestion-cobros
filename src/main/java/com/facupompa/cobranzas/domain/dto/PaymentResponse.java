@@ -10,6 +10,7 @@ public record PaymentResponse(
         Long debtId,
         BigDecimal amount,
         PaymentMethod paymentMethod,
-        Instant registeredAt
+        Instant registeredAt,
+        String registeredBy
 ) {
 }

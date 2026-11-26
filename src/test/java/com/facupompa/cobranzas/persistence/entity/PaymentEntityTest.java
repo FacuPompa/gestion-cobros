@@ -18,13 +18,15 @@ class PaymentEntityTest {
         CustomerEntity customer = new CustomerEntity("Cliente de prueba");
         DebtEntity debt = new DebtEntity(customer, "Deuda de prueba",
                 new BigDecimal("50000.00"), LocalDate.of(2026, 12, 18));
-        return new PaymentEntity(debt, new BigDecimal("10000.00"), registeredAt, PaymentMethod.CASH);
+        return new PaymentEntity(debt, new BigDecimal("10000.00"), registeredAt, PaymentMethod.CASH, "operador");
     }
 
     @Test
     void newPaymentShouldBeActive() {
         PaymentEntity payment = payment();
         assertFalse(payment.isCancelled());
+        assertEquals("operador", payment.getRegisteredBy());
+        assertNull(payment.getCancelledBy());
         assertNull(payment.getCancelledAt());
         assertNull(payment.getCancellationReason());
     }
@@ -34,9 +36,11 @@ class PaymentEntityTest {
         PaymentEntity payment = payment();
         DebtEntity originalDebt = payment.getDebt();
 
-        payment.cancel("Registro duplicado", cancelledAt);
+        payment.cancel("Registro duplicado", cancelledAt, "admin");
 
         assertTrue(payment.isCancelled());
+        assertEquals("operador", payment.getRegisteredBy());
+        assertEquals("admin", payment.getCancelledBy());
         assertEquals(cancelledAt, payment.getCancelledAt());
         assertEquals("Registro duplicado", payment.getCancellationReason());
         assertEquals(new BigDecimal("10000.00"), payment.getAmount());
@@ -48,13 +52,15 @@ class PaymentEntityTest {
     @Test
     void secondCancellationShouldFailWithoutOverwritingFirstCancellation() {
         PaymentEntity payment = payment();
-        payment.cancel("Primer motivo", cancelledAt);
+        payment.cancel("Primer motivo", cancelledAt, "admin");
 
         assertThrows(PaymentAlreadyCancelledException.class,
-                () -> payment.cancel("Otro motivo", cancelledAt.plusSeconds(60)));
+                () -> payment.cancel("Otro motivo", cancelledAt.plusSeconds(60), "otro-admin"));
 
         assertEquals(cancelledAt, payment.getCancelledAt());
         assertEquals("Primer motivo", payment.getCancellationReason());
+        assertEquals("admin", payment.getCancelledBy());
+        assertEquals("operador", payment.getRegisteredBy());
         assertEquals(new BigDecimal("10000.00"), payment.getAmount());
     }
 }

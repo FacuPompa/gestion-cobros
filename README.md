@@ -17,10 +17,12 @@ pasarelas de pago o facturación fiscal.
 - Rechazo de cobros superiores al saldo pendiente, incluyendo deudas saldadas.
 - Consulta del importe original, total cobrado y saldo pendiente de una deuda.
 - Consulta de totales de todas las deudas de un cliente; sin deudas devuelve ceros.
+- Autoría de cobros obtenida del usuario autenticado: registeredBy al registrar
+  y cancelledBy al anular.
 - Anulación de cobros con motivo y fecha, conservando el importe y el registro original.
 - Rechazo de una segunda anulación del mismo cobro.
 - Historial por deuda con cobros vigentes y anulados, ordenado por fecha de
-  registro e identificador; incluye fecha y motivo de anulación.
+  registro e identificador; incluye autores, fecha y motivo de anulación.
 - Usuarios persistidos con hashes BCrypt y roles OPERATOR y ADMIN.
 - Login con JWT de 15 minutos y autenticación Bearer en el perfil dev;
   anulación reservada a ADMIN.
@@ -102,21 +104,28 @@ público ni carga automática de usuarios.
 OPERATOR puede consultar y registrar datos; ADMIN puede además anular cobros.
 Credenciales incorrectas en login o peticiones protegidas sin JWT válido reciben
 401; un operador que intenta anular recibe 403. Fuera del entorno local se requiere
-HTTPS. La autoría de las operaciones y la renovación de tokens no están implementadas.
+HTTPS. La renovación de tokens no está implementada.
+
+Los autores se conservan como usernames históricos. Los cobros anteriores a V6
+pueden tener autor desconocido (null); no se les atribuye un usuario retroactivamente.
 
 ## Verificación y CI
 
 Con PostgreSQL local iniciado y las variables del perfil dev disponibles,
 ejecutar `./gradlew test --rerun-tasks`.
 
-La batería actual contiene nueve pruebas:
+La batería actual contiene quince pruebas:
 
 - Una prueba de carga del contexto de Spring.
 - Tres pruebas unitarias de PaymentEntity: cobro vigente, anulación que conserva
   los datos originales y rechazo de una segunda anulación sin sobrescribirla.
-- Cinco pruebas de integración con PostgreSQL: persistencia de la anulación,
+- Siete pruebas de integración con PostgreSQL: persistencia de la anulación,
   exclusión de anulados de saldos de deuda y cliente, registro de un nuevo cobro
-  usando el saldo recuperado, historial con desempate por ID y cobro inexistente.
+  usando el saldo recuperado, historial con desempate por ID, cobro inexistente,
+  conservación del autor ante una segunda anulación y autor desconocido en datos
+  históricos. Verifican también la persistencia y respuesta de los autores.
+- Cuatro pruebas unitarias de CurrentUserService: obtiene el username autenticado
+  y rechaza contexto vacío, credenciales sin autenticar y autenticación anónima.
 
 Las pruebas de integración crean sus propios datos y revierten sus transacciones
 al terminar. No comprueban concurrencia ni representan cobertura completa de la API.
@@ -134,7 +143,6 @@ independiente de la clave local. Todavía no hay despliegue automático (CD).
 ## Próximos pasos y límites actuales
 
 - Ampliar las pruebas automatizadas de las reglas de negocio.
-- Incorporar autoría de las operaciones.
 - Trabajar idempotencia y conflictos entre operaciones simultáneas.
 
 El control de acceso actual está configurado para el perfil dev.

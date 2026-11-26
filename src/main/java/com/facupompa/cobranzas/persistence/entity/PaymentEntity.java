@@ -39,23 +39,31 @@ public class PaymentEntity {
     @Column(name = "cancellation_reason", length = 255)
     private String cancellationReason;
 
-    public PaymentEntity(DebtEntity debt, BigDecimal amount, Instant registeredAt, PaymentMethod paymentMethod) {
+    @Column(name = "registered_by", updatable = false, length = 100)
+    private String registeredBy;
+
+    @Column(name = "cancelled_by", length = 100)
+    private String cancelledBy;
+
+    public PaymentEntity(DebtEntity debt, BigDecimal amount, Instant registeredAt, PaymentMethod paymentMethod, String registeredBy) {
         this.debt = debt;
         this.amount = amount;
         this.registeredAt = registeredAt;
         this.paymentMethod = paymentMethod;
+        this.registeredBy = registeredBy;
     }
 
     public boolean isCancelled() {
         return cancelledAt != null;
     }
 
-    public void cancel(String reason, Instant cancelledAt){
+    public void cancel(String reason, Instant cancelledAt, String cancelledBy){
         if (isCancelled()) {
             throw new PaymentAlreadyCancelledException(id);
         }
 
         this.cancellationReason = reason;
         this.cancelledAt = cancelledAt;
+        this.cancelledBy = cancelledBy;
     }
 }
