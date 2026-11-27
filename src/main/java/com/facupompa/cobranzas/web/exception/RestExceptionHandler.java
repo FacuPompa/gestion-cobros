@@ -51,4 +51,11 @@ public class RestExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
+
+    @ExceptionHandler(InvalidPaginationException.class)
+    ResponseEntity<ApiError> handleInvalidPagination(InvalidPaginationException exception) {
+        ApiError error = new ApiError("invalid-pagination", exception.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
 }

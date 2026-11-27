@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import com.facupompa.cobranzas.domain.dto.DebtPageResponse;
 
 @RestController
 @RequestMapping("/api/debts")
@@ -29,8 +29,11 @@ public class DebtController {
     }
 
     @GetMapping("/customer/{customerId}")
-    ResponseEntity<List<DebtResponse>> findDebtsByCustomerId(@PathVariable Long customerId) {
-        List<DebtResponse> debts = debtService.findDebtsByCustomerId(customerId);
+    ResponseEntity<DebtPageResponse> findDebtsByCustomerId(
+            @PathVariable Long customerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        DebtPageResponse debts = debtService.findDebtsByCustomerId(customerId, page, size);
 
         return  new ResponseEntity<>(debts, HttpStatus.OK);
     }

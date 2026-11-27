@@ -2,6 +2,7 @@ package com.facupompa.cobranzas.domain.service;
 
 import com.facupompa.cobranzas.domain.dto.CreateDebtRequest;
 import com.facupompa.cobranzas.domain.dto.DebtBalanceResponse;
+import com.facupompa.cobranzas.domain.dto.DebtPageResponse;
 import com.facupompa.cobranzas.domain.dto.DebtResponse;
 import com.facupompa.cobranzas.domain.exception.CustomerNotFoundException;
 import com.facupompa.cobranzas.domain.exception.DebtNotFoundException;
@@ -11,6 +12,10 @@ import com.facupompa.cobranzas.persistence.entity.PaymentEntity;
 import com.facupompa.cobranzas.persistence.repository.CustomerRepository;
 import com.facupompa.cobranzas.persistence.repository.DebtRepository;
 import com.facupompa.cobranzas.persistence.repository.PaymentRepository;
+import com.facupompa.cobranzas.domain.exception.InvalidPaginationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,12 +58,16 @@ public class DebtService {
     }
 
     @Transactional(readOnly = true)
-    public List<DebtResponse> findDebtsByCustomerId (Long customerId) {
+    public DebtPageResponse findDebtsByCustomerId (Long customerId, int page, int size) {
+        if (page < 0 || size < 1 || size > 100) {
+            throw new InvalidPaginationException();
+        }
         CustomerEntity customer = customerRepository.findById(customerId).orElseThrow(() ->{
             return new CustomerNotFoundException(customerId);
         } );
 
-        List<DebtEntity> debts = debtRepository.findAllByCustomerId(customerId);
+        Page<DebtEntity> debts = debtRepository.findAllByCustomerId(customerId,
+                PageRequest.of(page, size, Sort.by("dueDate", "id")));
 
         List<DebtResponse> responses = new ArrayList<>();
         for (DebtEntity debt : debts) {
@@ -71,7 +80,8 @@ public class DebtService {
             );
             responses.add(response);
         }
-        return responses;
+        return new DebtPageResponse(responses, debts.getNumber(), debts.getSize(),
+                debts.getTotalElements(), debts.getTotalPages(), debts.isLast());
     }
 
     @Transactional(readOnly = true)
