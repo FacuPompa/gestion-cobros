@@ -60,7 +60,9 @@ Los comandos se ejecutan desde la raíz del repositorio.
 
 PostgreSQL se publica en 127.0.0.1:5433, con base pellet y usuario
 pellet_app por defecto. POSTGRES_DB, POSTGRES_USER y POSTGRES_VOLUME permiten
-conectar una instalación existente conservando sus datos. Sus datos persisten
+conectar una instalación existente conservando sus datos. Para reutilizar un
+volumen creado por otro proyecto de Compose, definir además
+POSTGRES_VOLUME_EXTERNAL=true. El proyecto de Compose se llama pellet. Sus datos persisten
 en un volumen de Docker. Cambiar la variable
 de contraseña después de inicializar el volumen no cambia la contraseña de la
 base existente.
