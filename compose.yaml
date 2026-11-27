@@ -1,15 +1,19 @@
+name: pellet
+
 services:
   postgres:
     image: postgres:18
-    container_name: cobranzas-postgres
+    container_name: pellet-postgres
     environment:
-      POSTGRES_DB: cobranzas
-      POSTGRES_USER: cobranzas_app
+      POSTGRES_DB: ${POSTGRES_DB:-pellet}
+      POSTGRES_USER: ${POSTGRES_USER:-pellet_app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
-      - "cobranzas_pgdata:/var/lib/postgresql"
+      - "pellet_pgdata:/var/lib/postgresql"
 
 volumes:
-  cobranzas_pgdata:
+  pellet_pgdata:
+    name: ${POSTGRES_VOLUME:-pellet_pgdata}
+    external: ${POSTGRES_VOLUME_EXTERNAL:-false}

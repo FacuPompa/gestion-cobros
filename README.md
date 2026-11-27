@@ -1,7 +1,9 @@
-# Cobranzas API
+# Pellet API
 
-API REST para registrar clientes, deudas y cobros en pesos argentinos, y consultar
-el saldo pendiente de una deuda o el total de un cliente. Proyecto backend en desarrollo.
+Backend de gestión para pequeñas distribuidoras y forrajerías, en evolución
+hacia productos, existencias y ventas. Actualmente permite registrar clientes,
+deudas y cobros en pesos argentinos, consultar saldos y conservar su historial.
+El catálogo, el inventario y las ventas todavía no están implementados.
 
 La aplicación registra pagos que ya ocurrieron; no mueve dinero ni integra
 pasarelas de pago o facturación fiscal.
@@ -51,11 +53,17 @@ Los comandos se ejecutan desde la raíz del repositorio.
 3. Configurar la ejecución de la aplicación con SPRING_PROFILES_ACTIVE=dev y
    POSTGRES_PASSWORD con la contraseña de esa base. Spring no lee el archivo
    .env de Compose automáticamente.
-4. Ejecutar CobranzasApiApplication desde el IDE o `./gradlew bootRun` desde
+4. Si se reutiliza una base existente con nombres personalizados, pasar también
+   POSTGRES_DB y POSTGRES_USER al entorno de Spring (Compose lee .env; Spring no).
+5. Ejecutar PelletApiApplication desde el IDE o `./gradlew bootRun` desde
    una terminal que tenga esas variables disponibles.
 
-PostgreSQL se publica en 127.0.0.1:5433, con base cobranzas y usuario
-cobranzas_app. Sus datos persisten en un volumen de Docker. Cambiar la variable
+PostgreSQL se publica en 127.0.0.1:5433, con base pellet y usuario
+pellet_app por defecto. POSTGRES_DB, POSTGRES_USER y POSTGRES_VOLUME permiten
+conectar una instalación existente conservando sus datos. Para reutilizar un
+volumen creado por otro proyecto de Compose, definir además
+POSTGRES_VOLUME_EXTERNAL=true. El proyecto de Compose se llama pellet. Sus datos persisten
+en un volumen de Docker. Cambiar la variable
 de contraseña después de inicializar el volumen no cambia la contraseña de la
 base existente.
 
@@ -106,7 +114,7 @@ body JSON. Con credenciales válidas responde 200, sin body, y un header
 Authorization con el valor Bearer seguido del JWT. En Postman, usar después
 Authorization → Bearer Token en las rutas protegidas y pegar solo el token.
 
-Los tokens duran 15 minutos y se verifican firma HMAC256, emisor cobranzas-api,
+Los tokens duran 15 minutos y se verifican firma HMAC256, emisor pellet-api,
 expiración y presencia de sujeto. Cada petición carga los roles actuales desde
 PostgreSQL. El flujo es stateless; Basic Auth está deshabilitado.
 
@@ -160,6 +168,8 @@ independiente de la clave local. Todavía no hay despliegue automático (CD).
 
 ## Próximos pasos y límites actuales
 
+- Implementar catálogo de productos y movimientos básicos de existencias.
+- Incorporar ventas y su integración con la cuenta corriente de mayoristas.
 - Ampliar las pruebas automatizadas de las reglas de negocio.
 - Trabajar idempotencia y conflictos entre operaciones simultáneas.
 

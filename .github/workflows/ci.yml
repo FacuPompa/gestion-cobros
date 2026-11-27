@@ -20,13 +20,13 @@ jobs:
       postgres:
         image: postgres:18
         env:
-          POSTGRES_DB: cobranzas_ci
-          POSTGRES_USER: cobranzas_ci
+          POSTGRES_DB: pellet_ci
+          POSTGRES_USER: pellet_ci
           POSTGRES_PASSWORD: ci_password
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U cobranzas_ci -d cobranzas_ci"
+          --health-cmd "pg_isready -U pellet_ci -d pellet_ci"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -45,8 +45,8 @@ jobs:
       - name: Compilar y ejecutar tests
         env:
           SPRING_PROFILES_ACTIVE: dev
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/cobranzas_ci
-          SPRING_DATASOURCE_USERNAME: cobranzas_ci
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/pellet_ci
+          SPRING_DATASOURCE_USERNAME: pellet_ci
           POSTGRES_PASSWORD: ci_password
-          JWT_SECRET: "cobranzas-ci-only-signing-key-32bytes-minimum"
+          JWT_SECRET: "pellet-ci-only-signing-key-32bytes-minimum"
         run: ./gradlew test --no-daemon
