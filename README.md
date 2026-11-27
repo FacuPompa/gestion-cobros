@@ -71,7 +71,7 @@ Hibernate valida el esquema mediante ddl-auto=validate.
 | GET | /api/customers/{customerId} | Consultar cliente |
 | GET | /api/customers/{customerId}/balance | Consultar saldo total del cliente |
 | POST | /api/debts | Registrar deuda |
-| GET | /api/debts/customer/{customerId} | Consultar deudas de un cliente |
+| GET | /api/debts/customer/{customerId} | Consultar deudas paginadas de un cliente |
 | GET | /api/debts/{debtId}/balance | Consultar saldo de deuda |
 | POST | /api/payments | Registrar cobro |
 | POST | /api/payments/{paymentId}/cancel | Anular cobro con motivo |
@@ -79,7 +79,20 @@ Hibernate valida el esquema mediante ddl-auto=validate.
 
 Las altas responden 201 y las consultas exitosas 200. Las entradas inválidas
 responden 400, los clientes, deudas o cobros inexistentes 404, y los cobros
-superiores al saldo o una segunda anulación del mismo cobro 409. Un cliente existente sin deudas devuelve una lista vacía.
+superiores al saldo o una segunda anulación del mismo cobro 409. Un cliente existente sin deudas devuelve una página con content vacío.
+
+### Paginación de deudas
+
+`GET /api/debts/customer/{customerId}?page=0&size=20` devuelve un objeto con
+`content`, `page`, `size`, `totalElements`, `totalPages` y `last`. Esta respuesta
+reemplaza la lista plana anterior. Las páginas empiezan en cero; el tamaño
+predeterminado es 20 y admite valores de 1 a 100. El orden es vencimiento
+ascendente y después identificador ascendente.
+
+Una página fuera del rango devuelve 200 con contenido vacío y conserva los
+totales. Parámetros numéricos fuera de los límites devuelven 400 con código
+`invalid-pagination`; parámetros no numéricos también reciben 400. Un cliente
+inexistente sigue recibiendo 404.
 
 ## Acceso local
 
@@ -114,7 +127,7 @@ pueden tener autor desconocido (null); no se les atribuye un usuario retroactiva
 Con PostgreSQL local iniciado y las variables del perfil dev disponibles,
 ejecutar `./gradlew test --rerun-tasks`.
 
-La batería actual contiene quince pruebas:
+La batería actual contiene veintidós pruebas:
 
 - Una prueba de carga del contexto de Spring.
 - Tres pruebas unitarias de PaymentEntity: cobro vigente, anulación que conserva
@@ -126,6 +139,11 @@ La batería actual contiene quince pruebas:
   históricos. Verifican también la persistencia y respuesta de los autores.
 - Cuatro pruebas unitarias de CurrentUserService: obtiene el username autenticado
   y rechaza contexto vacío, credenciales sin autenticar y autenticación anónima.
+
+- Siete pruebas de paginación con PostgreSQL: filtro por cliente, orden y
+  desempate, metadatos, página fuera del rango, cliente vacío o inexistente y
+  límites de parámetros. Incluyen contrato MVC de parámetros predeterminados,
+  respuesta paginada y errores 400/404 mediante MockMvc sin cadena de seguridad.
 
 Las pruebas de integración crean sus propios datos y revierten sus transacciones
 al terminar. No comprueban concurrencia ni representan cobertura completa de la API.
